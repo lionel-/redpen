@@ -1,7 +1,7 @@
 
 node_match <- function(.node, ..., .env = caller_env()) {
   patterns <- dots_list(...)
-  stopifnot(every(patterns, is_node_pattern))
+  stopifnot(every(patterns, is_match_pattern))
 
   match <- detect_value(patterns, node_match_pattern, negate(is_null),
     node = .node,
@@ -16,12 +16,12 @@ node_match <- function(.node, ..., .env = caller_env()) {
 }
 
 # Returns pattern and a list of bindings in case of match, NULL otherwise
-node_match_pattern <- function(node, node_pattern, env) {
+node_match_pattern <- function(node, match_pattern, env) {
   if (is_quosure(node)) {
     env <- get_env(node)
     node <- get_expr(node)
   }
-  pattern <- node_pattern$pattern
+  pattern <- match_pattern$pattern
 
   if (typeof(node) != typeof(pattern)) {
     return(NULL)
@@ -40,7 +40,7 @@ node_match_pattern <- function(node, node_pattern, env) {
     return(NULL)
   }
 
-  list(pattern = node_pattern, bindings = bindings)
+  list(pattern = match_pattern, bindings = bindings)
 }
 
 sxp_match <- function(x, y, bindings) {
@@ -66,14 +66,14 @@ is_identical_node_data <- function(x, y) {
 match_pattern <- function(pattern, expr) {
   new_match_pattern(enexpr(pattern), enquo(expr))
 }
-new_node_pattern <- function(pattern, expr) {
+new_match_pattern <- function(pattern, expr) {
   stopifnot(is_quosure(expr))
   pattern <- list(
     pattern = pattern,
     expr = expr
   )
-  set_attrs(pattern, class = "node_pattern")
+  set_attrs(pattern, class = "match_pattern")
 }
-is_node_pattern <- function(x) {
-  inherits(x, "node_pattern")
+is_match_pattern <- function(x) {
+  inherits(x, "match_pattern")
 }
