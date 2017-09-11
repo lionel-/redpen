@@ -35,19 +35,25 @@ node_match_pattern <- function(node, node_pattern, env) {
     return(out)
   }
 
-  node_rest <- node
-  pattern_rest <- pattern
-
-  while (!is_null(node_rest) && !is_null(pattern_rest)) {
-    if (!is_identical_node_data(node_rest, pattern_rest)) {
-      return(NULL)
-    }
-    node_rest <- node_cdr(node_rest)
-    pattern_rest <- node_cdr(pattern_rest)
+  bindings <- list()
+  if (!sxp_match(node, pattern, bindings)) {
+    return(NULL)
   }
 
-  list(pattern = node_pattern, bindings = list())
+  list(pattern = node_pattern, bindings = bindings)
 }
+
+sxp_match <- function(x, y, bindings) {
+  switch_type(x,
+    language = ,
+    pairlist = {
+      matched_data <- is_identical_node_data(x, y)
+      matched_data && sxp_match(node_cdr(x), node_cdr(y), bindings)
+    },
+    identical(x, y)
+  )
+}
+
 
 # Checks both CAR and TAG
 is_identical_node_data <- function(x, y) {
@@ -57,8 +63,8 @@ is_identical_node_data <- function(x, y) {
   identical(node_tag(x), node_tag(y))
 }
 
-node_pattern <- function(pattern, expr) {
-  new_node_pattern(enexpr(pattern), enquo(expr))
+match_pattern <- function(pattern, expr) {
+  new_match_pattern(enexpr(pattern), enquo(expr))
 }
 new_node_pattern <- function(pattern, expr) {
   stopifnot(is_quosure(expr))
