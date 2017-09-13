@@ -46,23 +46,23 @@ node_match_pattern <- function(node, match_pattern, env) {
 sxp_match <- function(x, y, bindings, env) {
   switch_type(x,
     symbol =
-      is_match_identical(x, y),
+      is_symbol_match(x, y),
     language = ,
     pairlist = {
-      matched_data <- is_identical_node_data(x, y, bindings, env)
+      matched_data <- is_node_match(x, y, bindings, env)
       matched_data && sxp_match(node_cdr(x), node_cdr(y), bindings, env)
     },
     identical(x, y)
   )
 }
 
-is_match_identical <- function(x, y) {
+is_symbol_match <- function(x, y) {
   is_wildcard(y) || identical(x, y)
 }
 
 # Checks both CAR and TAG. Supports wildcards and bindings.
-is_identical_node_data <- function(x, y, bindings, env) {
-  if (!is_match_identical(node_tag(x), node_tag(y))) {
+is_node_match <- function(x, y, bindings, env) {
+  if (!is_symbol_match(node_tag(x), node_tag(y))) {
     return(FALSE)
   }
 
@@ -81,7 +81,7 @@ is_identical_node_data <- function(x, y, bindings, env) {
     return(TRUE)
   }
 
-  is_match_identical(node_car(x), node_car(y))
+  is_symbol_match(node_car(x), node_car(y))
 }
 
 is_wildcard <- function(x) {
