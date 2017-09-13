@@ -27,3 +27,8 @@ test_that("can match and bind", {
   expect_null(node_match(quote(call(param = arg)), match_pattern(call(.(foo)), foo)))
   expect_identical(node_match(quote(call(param = arg)), match_pattern(call(. = .(foo)), foo)), quote(arg))
 })
+
+test_that("can match and eval-bind", {
+  call <- function() "foobar"
+  expect_identical(node_match(quote(1 + call()), match_pattern(1 + ..(foo), foo)), "foobar")
+})

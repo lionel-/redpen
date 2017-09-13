@@ -36,21 +36,21 @@ node_match_pattern <- function(node, match_pattern, env) {
   }
 
   bindings <- new_environment()
-  if (!sxp_match(node, pattern, bindings)) {
+  if (!sxp_match(node, pattern, bindings, env)) {
     return(NULL)
   }
 
   list(pattern = match_pattern, bindings = bindings)
 }
 
-sxp_match <- function(x, y, bindings) {
+sxp_match <- function(x, y, bindings, env) {
   switch_type(x,
     symbol =
       is_match_identical(x, y),
     language = ,
     pairlist = {
-      matched_data <- is_identical_node_data(x, y, bindings)
-      matched_data && sxp_match(node_cdr(x), node_cdr(y), bindings)
+      matched_data <- is_identical_node_data(x, y, bindings, env)
+      matched_data && sxp_match(node_cdr(x), node_cdr(y), bindings, env)
     },
     identical(x, y)
   )
@@ -59,15 +59,9 @@ sxp_match <- function(x, y, bindings) {
 is_match_identical <- function(x, y) {
   is_wildcard(y) || identical(x, y)
 }
-is_wildcard <- function(x) {
-  identical(x, dot_sym)
-}
-is_bind_operator <- function(x) {
-  is_language(x) && identical(node_car(x), dot_sym)
-}
 
 # Checks both CAR and TAG. Supports wildcards and bindings.
-is_identical_node_data <- function(x, y, bindings) {
+is_identical_node_data <- function(x, y, bindings, env) {
   if (!is_match_identical(node_tag(x), node_tag(y))) {
     return(FALSE)
   }
@@ -77,11 +71,27 @@ is_identical_node_data <- function(x, y, bindings) {
     if (!is_symbol(binding)) {
       abort("Binding must be a symbol")
     }
-    env_poke(bindings, as_string(binding), node_car(x))
+
+    if (is_eval_operator(node_car(y))) {
+      value <- eval_bare(node_car(x), env)
+    } else {
+      value <- node_car(x)
+    }
+    env_poke(bindings, as_string(binding), value)
     return(TRUE)
   }
 
   is_match_identical(node_car(x), node_car(y))
+}
+
+is_wildcard <- function(x) {
+  identical(x, dot_sym)
+}
+is_bind_operator <- function(x) {
+  is_language(x, list(bind_sym, eval_sym))
+}
+is_eval_operator <- function(x) {
+  is_language(x, eval_sym)
 }
 
 match_pattern <- function(pattern, expr) {
@@ -100,6 +110,8 @@ is_match_pattern <- function(x) {
 }
 
 dot_sym <- quote(.)
+bind_sym <- quote(.)
+eval_sym <- quote(..)
 
 env_poke <- env_set
 is_language <- is_lang
