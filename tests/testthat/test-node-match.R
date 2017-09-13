@@ -20,3 +20,10 @@ test_that("can match wildcard", {
   expect_null(node_match(quote(call(arg = 1)), match_pattern(call(.), "match")), "match")
   expect_null(node_match(quote(call(arg = 1)), match_pattern(call(wrong = .), "match")), "match")
 })
+
+test_that("can match and bind", {
+  expect_identical(node_match(quote(1 + call()), match_pattern(1 + .(foo), foo)), quote(call()))
+
+  expect_null(node_match(quote(call(param = arg)), match_pattern(call(.(foo)), foo)))
+  expect_identical(node_match(quote(call(param = arg)), match_pattern(call(. = .(foo)), foo)), quote(arg))
+})

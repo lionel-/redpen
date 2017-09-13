@@ -35,7 +35,7 @@ node_match_pattern <- function(node, match_pattern, env) {
     return(out)
   }
 
-  bindings <- list()
+  bindings <- new_environment()
   if (!sxp_match(node, pattern, bindings)) {
     return(NULL)
   }
@@ -49,7 +49,7 @@ sxp_match <- function(x, y, bindings) {
       is_match_identical(x, y),
     language = ,
     pairlist = {
-      matched_data <- is_identical_node_data(x, y)
+      matched_data <- is_identical_node_data(x, y, bindings)
       matched_data && sxp_match(node_cdr(x), node_cdr(y), bindings)
     },
     identical(x, y)
@@ -60,15 +60,28 @@ is_match_identical <- function(x, y) {
   is_wildcard(y) || identical(x, y)
 }
 is_wildcard <- function(x) {
-  identical(x, quote(.))
+  identical(x, dot_sym)
+}
+is_bind_operator <- function(x) {
+  is_language(x) && identical(node_car(x), dot_sym)
 }
 
-# Checks both CAR and TAG
-is_identical_node_data <- function(x, y) {
-  if (!is_match_identical(node_car(x), node_car(y))) {
+# Checks both CAR and TAG. Supports wildcards and bindings.
+is_identical_node_data <- function(x, y, bindings) {
+  if (!is_match_identical(node_tag(x), node_tag(y))) {
     return(FALSE)
   }
-  is_match_identical(node_tag(x), node_tag(y))
+
+  if (is_bind_operator(node_car(y))) {
+    binding <- node_cadr(node_car(y))
+    if (!is_symbol(binding)) {
+      abort("Binding must be a symbol")
+    }
+    env_poke(bindings, as_string(binding), node_car(x))
+    return(TRUE)
+  }
+
+  is_match_identical(node_car(x), node_car(y))
 }
 
 match_pattern <- function(pattern, expr) {
@@ -85,3 +98,8 @@ new_match_pattern <- function(pattern, expr) {
 is_match_pattern <- function(x) {
   inherits(x, "match_pattern")
 }
+
+dot_sym <- quote(.)
+
+env_poke <- env_set
+is_language <- is_lang
