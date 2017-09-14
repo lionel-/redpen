@@ -11,7 +11,10 @@ node_match <- function(.node, ..., .env = caller_env()) {
   }
 
   expr <- match$pattern$expr
-  eval_tidy(expr, data = match$bindings)
+  bindings <- match$bindings
+  bindings$. <- .node
+
+  eval_tidy(expr, data = bindings)
 }
 
 dots_match_patterns <- function(...) {

@@ -32,3 +32,9 @@ test_that("can match and eval-bind", {
   call <- function() "foobar"
   expect_identical(node_match(quote(1 + call()), 1 + ..(foo) := foo), "foobar")
 })
+
+test_that("bind input node on `.`", {
+  x <- quote(foo(bar))
+  match <- node_match(x, foo(bar) := .)
+  expect_true(is_reference(x, match))
+})
