@@ -38,3 +38,11 @@ test_that("bind input node on `.`", {
   match <- node_match(x, foo(bar) := .)
   expect_true(is_reference(x, match))
 })
+
+test_that("matching processes patterns sequentially", {
+  match <- node_match(quote(1 + 2),
+    1 + 1 := "foo",
+    1 + 2 := "bar"
+  )
+  expect_identical(match, "bar")
+})
