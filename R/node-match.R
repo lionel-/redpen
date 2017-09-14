@@ -1,9 +1,8 @@
 
 node_match <- function(.node, ..., .env = caller_env()) {
-  patterns <- dots_list(...)
-  stopifnot(every(patterns, is_match_pattern))
+  dots <- dots_match_patterns(...)
 
-  match <- detect_value(patterns, node_match_pattern, negate(is_null),
+  match <- detect_value(dots, node_match_pattern, negate(is_null),
     node = .node,
     env = .env
   )
@@ -15,13 +14,26 @@ node_match <- function(.node, ..., .env = caller_env()) {
   eval_tidy(expr, data = match$bindings)
 }
 
+dots_match_patterns <- function(...) {
+  dots <- dots_patterns(...)
+  dots <- map(dots, set_names, "pattern", "expr")
+
+  # Extract quosures from patterns RHS
+  dots <- map(dots, function(input) {
+    input$pattern <- get_expr(input$pattern)
+    input
+  })
+
+  dots
+}
+
 # Returns pattern and a list of bindings in case of match, NULL otherwise
-node_match_pattern <- function(node, match_pattern, env) {
+node_match_pattern <- function(node, input, env) {
   if (is_quosure(node)) {
     env <- get_env(node)
     node <- get_expr(node)
   }
-  pattern <- match_pattern$pattern
+  pattern <- input$pattern
 
   if (typeof(node) != typeof(pattern)) {
     return(NULL)
@@ -40,7 +52,7 @@ node_match_pattern <- function(node, match_pattern, env) {
     return(NULL)
   }
 
-  list(pattern = match_pattern, bindings = bindings)
+  list(pattern = input, bindings = bindings)
 }
 
 sxp_match <- function(x, y, bindings, env) {
