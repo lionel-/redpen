@@ -160,21 +160,24 @@ is_node_match <- function(input, pattern, env, bindings) {
   }
 
   if (is_bind_operator(node_car(pattern))) {
-    binding <- node_cadr(node_car(pattern))
-    if (!is_symbol(binding)) {
-      abort("Binding must be a symbol")
-    }
-
-    if (is_eval_operator(node_car(pattern))) {
-      value <- eval_bare(node_car(input), env)
-    } else {
-      value <- node_car(input)
-    }
-    env_poke(bindings, as_string(binding), value)
-    return(TRUE)
+    push_binding(node_car(pattern), node_car(input), env, bindings)
+    TRUE
+  } else {
+    is_symbol_match(node_car(input), node_car(pattern))
+  }
+}
+push_binding <- function(pattern, input, env, bindings) {
+  binding <- node_cadr(pattern)
+  if (!is_symbol(binding)) {
+    abort("Binding must be a symbol")
   }
 
-  is_symbol_match(node_car(input), node_car(pattern))
+  if (is_eval_operator(pattern)) {
+    value <- eval_bare(input, env)
+  } else {
+    value <- input
+  }
+  env_poke(bindings, as_string(binding), value)
 }
 
 
