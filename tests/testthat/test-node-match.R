@@ -84,3 +84,21 @@ test_that("matching processes patterns sequentially", {
   )
   expect_identical(match, "bar")
 })
+
+test_that("can match and bind on tag", {
+  x <- quote(lang(tag = bar))
+  expect_identical(node_match(x, lang(`.(foo)` = bar) := toupper(foo)), "TAG")
+})
+
+test_that("can match non-syntactic names", {
+  x <- quote(lang(`non-syntactic` = foo, `non syntactic` = bar))
+
+  expect_error(node_match(x, lang(`non-syntactic` = foo) := TRUE), "double-quote")
+  expect_error(node_match(x, lang(`non syntactic` = bar) := TRUE), "unexpected symbol")
+
+  pat <- quote(lang(
+    `\`non-syntactic\`` = foo,
+    "`non syntactic`" = bar)
+  )
+  expect_true(node_match(x, !! pat := TRUE))
+})

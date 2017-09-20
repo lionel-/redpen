@@ -155,7 +155,14 @@ is_ordered_match <- function(input, pattern, env, bindings, partial) {
 
 # Checks CAR and TAG, not CDR. Supports wildcards and bindings.
 is_node_match <- function(input, pattern, env, bindings) {
-  if (!is_symbol_match(node_tag(input), node_tag(pattern))) {
+  parsed_tag <- sym_parse(node_tag(pattern))
+
+  if (is_language(parsed_tag)) {
+    if (!is_bind_operator(parsed_tag)) {
+      abort("Unexpected argument name in pattern. Do you need to double-quote?")
+    }
+    push_binding(parsed_tag, as_string(node_tag(input)), env, bindings)
+  } else if (!is_symbol_match(node_tag(input), parsed_tag)) {
     return(FALSE)
   }
 
@@ -178,6 +185,13 @@ push_binding <- function(pattern, input, env, bindings) {
     value <- input
   }
   env_poke(bindings, as_string(binding), value)
+}
+sym_parse <- function(sym) {
+  if (is_null(sym)) {
+    NULL
+  } else {
+    parse_expr(as_string(sym))
+  }
 }
 
 
