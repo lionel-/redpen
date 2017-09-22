@@ -39,18 +39,20 @@ conforms to a pattern. The following rules apply to patterns:
   foo, NULL = bar)` and `call(NULL = bar, NULL = foo)` will both
   match the call `call(foo, bar)`.
 
-* A `...` symbol that allows unmatched arguments. `call(...)` will
-  match any calls to `call()`, including `call(foo)` or `call(foo,
-  bar())`.
-
 
 In addition, patterns can contain wildcards that will match
 anything:
 
-* Wildcards with the `.` pronoun. A wildcard will match any
-  argument. It can appear on the LHS or the RHS of an argument. For
-  instance `call(. = .)` will match any argument no matter its
-  name.
+* The `.` wildcard will match any argument. It can appear on the
+  LHS or the RHS of an argument. For instance `call(. = .)` will
+  match any argument no matter its name.
+
+* The `...` wildcard matches all remaining unmatched arguments.
+  `call(...)` will match any calls to `call()`, including
+  `call(foo)` or `call(foo, bar())`.
+
+  If you need to match an argument regardless of whether it has a
+  name, use the ellipsis as LHS: `call(... = .)`.
 
 * Binding wildcards with `.(name)`. Binding wildcards match
   anything and create a reference to the matched code that you can
@@ -163,6 +165,13 @@ node_match(call,
   mutate(., weight^2)         ~ 1,
   mutate(., wrong = weight^2) ~ 2,
   mutate(., . = weight^2)     ~ 3
+)
+
+# If you want to match an argument regardless of whether it has a
+# name, use the ellipsis wildcard instead:
+node_match(quote(call(arg)),
+  call(. = arg)   ~ 1,
+  call(... = arg) ~ 2
 )
 
 # The RHS is a handy way of providing custom error messages:

@@ -17,18 +17,20 @@
 #'   foo, NULL = bar)` and `call(NULL = bar, NULL = foo)` will both
 #'   match the call `call(foo, bar)`.
 #'
-#' * A `...` symbol that allows unmatched arguments. `call(...)` will
-#'   match any calls to `call()`, including `call(foo)` or `call(foo,
-#'   bar())`.
-#'
 #'
 #' In addition, patterns can contain wildcards that will match
 #' anything:
 #'
-#' * Wildcards with the `.` pronoun. A wildcard will match any
-#'   argument. It can appear on the LHS or the RHS of an argument. For
-#'   instance `call(. = .)` will match any argument no matter its
-#'   name.
+#' * The `.` wildcard will match any argument. It can appear on the
+#'   LHS or the RHS of an argument. For instance `call(. = .)` will
+#'   match any argument no matter its name.
+#'
+#' * The `...` wildcard matches all remaining unmatched arguments.
+#'   `call(...)` will match any calls to `call()`, including
+#'   `call(foo)` or `call(foo, bar())`.
+#'
+#'   If you need to match an argument regardless of whether it has a
+#'   name, use the ellipsis as LHS: `call(... = .)`.
 #'
 #' * Binding wildcards with `.(name)`. Binding wildcards match
 #'   anything and create a reference to the matched code that you can
@@ -147,6 +149,13 @@
 #'   mutate(., weight^2)         ~ 1,
 #'   mutate(., wrong = weight^2) ~ 2,
 #'   mutate(., . = weight^2)     ~ 3
+#' )
+#'
+#' # If you want to match an argument regardless of whether it has a
+#' # name, use the ellipsis wildcard instead:
+#' node_match(quote(call(arg)),
+#'   call(. = arg)   ~ 1,
+#'   call(... = arg) ~ 2
 #' )
 #'
 #' # The RHS is a handy way of providing custom error messages:
@@ -284,6 +293,15 @@ sxp_match <- function(input, pattern, env, bindings) {
 is_symbol_match <- function(x, y) {
   is_wildcard(x) || is_wildcard(y) || identical(x, y)
 }
+is_tag_match <- function(tag, pattern) {
+  if (identical(tag, pattern)) {
+    TRUE
+  } else if (is_null(tag)) {
+    is_ellipsis(pattern)
+  } else {
+    is_wildcard(pattern)
+  }
+}
 mend_ellipsis <- function(node) {
   parent <- node_find_parent_car(node, identical, dots_sym)
 
@@ -363,7 +381,7 @@ is_node_match <- function(input_node, pattern_node, env, bindings) {
       abort("Unexpected argument name in pattern. Do you need to double-quote?")
     }
     push_binding(parsed_tag, as_string(input_tag), env, bindings)
-  } else if (!is_symbol_match(input_tag, parsed_tag)) {
+  } else if (!is_tag_match(input_tag, parsed_tag)) {
     return(FALSE)
   }
 
@@ -402,6 +420,9 @@ sym_parse <- function(sym) {
 
 is_wildcard <- function(x) {
   identical(x, dot_sym)
+}
+is_ellipsis <- function(x) {
+  identical(x, dots_sym)
 }
 is_bind_operator <- function(x) {
   is_language(x, list(bind_sym, eval_sym))
