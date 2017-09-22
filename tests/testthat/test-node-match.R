@@ -108,3 +108,9 @@ test_that("NULL tag is treated as unordered match", {
   expect_true(node_match(x, lang(NULL = foo, tag = arg) ~ TRUE))
   expect_null(node_match(x, lang(foo, tag = arg) ~ TRUE))
 })
+
+test_that("can use wildcard on name", {
+  expect_true(node_match(quote(lang(tag = arg)), lang(. = arg) := TRUE))
+  expect_true(node_match(quote(lang(tag = arg)), lang(. = .) := TRUE))
+  expect_true(node_match(quote(lang(arg)), lang(. = arg) := TRUE))
+})
