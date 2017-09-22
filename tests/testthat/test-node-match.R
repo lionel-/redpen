@@ -102,3 +102,9 @@ test_that("can match non-syntactic names", {
   )
   expect_true(node_match(x, !! pat := TRUE))
 })
+
+test_that("NULL tag is treated as unordered match", {
+  x <- quote(lang(tag = arg, foo))
+  expect_true(node_match(x, lang(NULL = foo, tag = arg) ~ TRUE))
+  expect_null(node_match(x, lang(foo, tag = arg) ~ TRUE))
+})
