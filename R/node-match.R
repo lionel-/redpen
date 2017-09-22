@@ -1,9 +1,9 @@
 
-node_match <- function(.node, ..., .env = caller_env()) {
+node_match <- function(.x, ..., .env = caller_env()) {
   dots <- dots_match_patterns(...)
 
   match <- detect_value(dots, node_match_pattern, negate(is_null),
-    node = .node,
+    node = .x,
     env = .env
   )
   if (is_null(match)) {
@@ -12,7 +12,7 @@ node_match <- function(.node, ..., .env = caller_env()) {
 
   expr <- match$pattern$expr
   bindings <- match$bindings
-  bindings$. <- .node
+  bindings$. <- .x
 
   eval_tidy(expr, data = bindings)
 }
