@@ -134,3 +134,9 @@ test_that("wildcards work in subcalls", {
   expect_null(node_match(x, outer(. = inner()) := TRUE))
   expect_true(node_match(x, outer(. = inner(...)) := TRUE))
 })
+
+test_that("bind operator returns a reference to subcall", {
+  x <- quote(outer(inner()))
+  match <- node_match(x, outer(.(var)) := var)
+  expect_true(is_reference(match, node_cadr(x)))
+})
