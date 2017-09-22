@@ -192,23 +192,28 @@ is_ordered_match <- function(input, pattern, env, bindings, partial) {
 }
 
 # Checks CAR and TAG, not CDR. Supports wildcards and bindings.
-is_node_match <- function(input, pattern, env, bindings) {
-  parsed_tag <- sym_parse(node_tag(pattern))
+is_node_match <- function(input_node, pattern_node, env, bindings) {
+  input_tag <- node_tag(input_node)
+  parsed_tag <- sym_parse(node_tag(pattern_node))
 
   if (is_language(parsed_tag)) {
     if (!is_bind_operator(parsed_tag)) {
       abort("Unexpected argument name in pattern. Do you need to double-quote?")
     }
-    push_binding(parsed_tag, as_string(node_tag(input)), env, bindings)
-  } else if (!is_symbol_match(node_tag(input), parsed_tag)) {
+    push_binding(parsed_tag, as_string(input_tag), env, bindings)
+  } else if (!is_symbol_match(input_tag, parsed_tag)) {
     return(FALSE)
   }
 
-  if (is_bind_operator(node_car(pattern))) {
-    push_binding(node_car(pattern), node_car(input), env, bindings)
+  input <- node_car(input_node)
+  pattern <- node_car(pattern_node)
+  if (is_bind_operator(pattern)) {
+    push_binding(pattern, input, env, bindings)
     TRUE
+  } else if (is_language(pattern)) {
+    sxp_match(input, pattern, env, bindings)
   } else {
-    is_symbol_match(node_car(input), node_car(pattern))
+    is_symbol_match(input, pattern)
   }
 }
 push_binding <- function(pattern, input, env, bindings) {

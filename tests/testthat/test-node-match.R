@@ -122,3 +122,15 @@ test_that("lang_match() standardises calls", {
   x <- quote(test_that(desc))
   expect_true(lang_match(x, test_that(desc = desc) := TRUE))
 })
+
+test_that("wildcards work in subcalls", {
+  x <- quote(outer(inner(foo, bar)))
+
+  expect_null(node_match(x, outer(inner()) := TRUE))
+  expect_true(node_match(x, outer(inner(...)) := TRUE))
+  expect_identical(node_match(x, outer(inner(.(var), ...)) := var), quote(foo))
+
+  x <- quote(outer(tag = inner(foo, bar)))
+  expect_null(node_match(x, outer(. = inner()) := TRUE))
+  expect_true(node_match(x, outer(. = inner(...)) := TRUE))
+})
