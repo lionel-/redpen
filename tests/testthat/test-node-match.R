@@ -140,3 +140,8 @@ test_that("bind operator returns a reference to subcall", {
   match <- node_match(x, outer(.(var)) := var)
   expect_true(is_reference(match, node_cadr(x)))
 })
+
+test_that("can supply a top level wildcard", {
+  expect_true(node_match(quote(lang()), . ~ TRUE))
+  expect_identical(node_match(quote(lang()), .(var) ~ var), quote(lang()))
+})

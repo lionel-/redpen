@@ -68,7 +68,6 @@ dots_match_patterns <- function(...) {
   dots
 }
 
-# Returns pattern and a list of bindings in case of match, NULL otherwise
 node_match_pattern <- function(node, input, env) {
   if (is_quosure(node)) {
     env <- get_env(node)
@@ -76,27 +75,23 @@ node_match_pattern <- function(node, input, env) {
   }
   pattern <- input$pattern
 
-  if (typeof(node) != typeof(pattern)) {
-    return(NULL)
-  }
-  if (!is_node(node)) {
-    if (identical(node, pattern)) {
-      out <- node
-    } else {
-      out <- NULL
-    }
-    return(out)
-  }
-
   bindings <- new_environment()
-  if (!sxp_match(node, pattern, env, bindings)) {
-    return(NULL)
+  if (sxp_match(node, pattern, env, bindings)) {
+    list(pattern = input, bindings = bindings)
+  } else {
+    NULL
   }
-
-  list(pattern = input, bindings = bindings)
 }
 
 sxp_match <- function(input, pattern, env, bindings) {
+  if (is_wildcard(pattern)) {
+    return(TRUE)
+  }
+  if (is_bind_operator(pattern)) {
+    push_binding(pattern, input, env, bindings)
+    return(TRUE)
+  }
+
   switch_type(input,
     symbol = {
       is_symbol_match(input, pattern)
