@@ -1,4 +1,42 @@
 
+lang_match <- function(.x, ..., .env = caller_env()) {
+  .x <- lang_standardise(.x, env = .env)
+
+  dots <- dots_patterns(...)
+  dots <- map(dots, function(x) {
+    x$lhs <- lang_standardise(x$lhs)
+    x
+  })
+  dots <- patterns_recompose(dots)
+
+  node_match(.x = .x, !!! dots, .env = .env)
+}
+
+patterns_recompose <- function(patterns, new_pattern = new_formula) {
+  map(patterns, pattern_recompose, new_pattern)
+}
+
+is_pattern <- function(x) {
+  if (!identical(names(x), c("lhs", "rhs"))) {
+    return(FALSE)
+  }
+  if (!every(x, is_quosure)) {
+    return(FALSE)
+  }
+  if (!identical(get_env(x$lhs), get_env(x$rhs))) {
+    return(FALSE)
+  }
+  TRUE
+}
+pattern_recompose <- function(pattern, new_pattern) {
+  if (!is_pattern(pattern)) {
+    abort("A pattern must be a list of `lhs` and `rhs` quosures")
+  }
+  env <- get_env(pattern$lhs)
+  exprs <- map(pattern, get_expr)
+  new_pattern(exprs$lhs, exprs$rhs, env = env)
+}
+
 node_match <- function(.x, ..., .env = caller_env()) {
   dots <- dots_match_patterns(...)
 

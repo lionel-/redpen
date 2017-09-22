@@ -114,3 +114,11 @@ test_that("can use wildcard on name", {
   expect_true(node_match(quote(lang(tag = arg)), lang(. = .) := TRUE))
   expect_true(node_match(quote(lang(arg)), lang(. = arg) := TRUE))
 })
+
+test_that("lang_match() standardises calls", {
+  x <- quote(test_that(desc = desc))
+  expect_true(lang_match(x, test_that(desc) := TRUE))
+
+  x <- quote(test_that(desc))
+  expect_true(lang_match(x, test_that(desc = desc) := TRUE))
+})
