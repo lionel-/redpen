@@ -149,3 +149,7 @@ test_that("can supply a top level wildcard", {
   expect_true(node_match(quote(lang()), . ~ TRUE))
   expect_identical(node_match(quote(lang()), .(var) ~ var), quote(lang()))
 })
+
+test_that("matching a call to a non-call object returns NULL (#3)", {
+  expect_null(node_match(quote(2 + 2), 4 ~ TRUE))
+})

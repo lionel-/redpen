@@ -312,6 +312,9 @@ sxp_match <- function(input, pattern, env, bindings) {
       is_symbol_match(input, pattern)
     },
     language = {
+      if (!is_language(pattern)) {
+        return(FALSE)
+      }
       matched_first <- sxp_match(node_car(input), node_car(pattern), env, bindings)
       matched_first && sxp_match(node_cdr(input), node_cdr(pattern), env, bindings)
     },
