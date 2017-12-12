@@ -38,13 +38,16 @@
 #' In addition, patterns can contain wildcards that will match
 #' anything:
 #'
-#' * The `.` wildcard will match any argument. It can appear on the
-#'   LHS or the RHS of an argument. For instance `call(. = .)` will
-#'   match any argument no matter its name.
+#' * The `.` wildcard will match anything. It can appear on the LHS or
+#'   the RHS of an argument. For instance `call(. = .)` will match any
+#'   argument no matter its name. `call(.)` will match any unnamed
+#'   argument.
 #'
 #' * The `...` wildcard matches all remaining unmatched arguments.
 #'   `call(...)` will match any calls to `call()`, including
-#'   `call(foo)` or `call(foo, bar())`.
+#'   `call(foo)` or `call(foo, bar())`. This is in contrast to the
+#'   default where matching must be exhaustive, i.e. `call(.)` will
+#'   match `call(foo)` but won't `call(foo, bar)`.
 #'
 #'   If you need to match an argument regardless of whether it has a
 #'   name, use the ellipsis as LHS: `call(... = .)`.
@@ -53,7 +56,9 @@
 #'   anything and create a reference to the matched code that you can
 #'   later refer to for further checking. For instance if you are
 #'   matching against the call `call(foo(bar))` with the pattern
-#'   `call(.(arg))`, the `arg` object will contain `foo(bar)`.
+#'   `call(.(arg))`, the `arg` object will contain `foo(bar)`. If
+#'   several wildcards are given the same name, they override each
+#'   other and the last one prevails.
 #'
 #' * Eval-binding wildcards with `..(name)`. These wildcards work just
 #'   like binding wildcards but evaluate the matched code before
@@ -64,7 +69,24 @@
 #' expression is evaluated only if the pattern match. It can evaluate
 #' to a sentinel value (so you know which expression matched) or to
 #' some checking code. If no pattern matches, the return value of is
-#' `NULL`.
+#' `NULL`. For example the following returns `NULL`:
+#'
+#' ```
+#' expr <- quote(call(foo, bar))
+#' node_match(expr,
+#'   call(baz) ~ 1,
+#'   call(.) ~ 2
+#' )
+#' ```
+#'
+#' While this returns `2`:
+#'
+#' ```
+#' node_match(expr,
+#'   call(foo, baz) ~ 1,
+#'   call(foo, .) ~ 2
+#' )
+#' ```
 #'
 #'
 #' @section `lang_match()` versus `node_match()`:

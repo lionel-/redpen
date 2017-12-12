@@ -56,12 +56,15 @@ match even if not in order. The patterns \code{call(NULL = foo, NULL = bar)} and
 In addition, patterns can contain wildcards that will match
 anything:
 \itemize{
-\item The \code{.} wildcard will match any argument. It can appear on the
-LHS or the RHS of an argument. For instance \code{call(. = .)} will
-match any argument no matter its name.
+\item The \code{.} wildcard will match anything. It can appear on the LHS or
+the RHS of an argument. For instance \code{call(. = .)} will match any
+argument no matter its name. \code{call(.)} will match any unnamed
+argument.
 \item The \code{...} wildcard matches all remaining unmatched arguments.
 \code{call(...)} will match any calls to \code{call()}, including
-\code{call(foo)} or \code{call(foo, bar())}.
+\code{call(foo)} or \code{call(foo, bar())}. This is in contrast to the
+default where matching must be exhaustive, i.e. \code{call(.)} will
+match \code{call(foo)} but won't \code{call(foo, bar)}.
 
 If you need to match an argument regardless of whether it has a
 name, use the ellipsis as LHS: \code{call(... = .)}.
@@ -69,7 +72,9 @@ name, use the ellipsis as LHS: \code{call(... = .)}.
 anything and create a reference to the matched code that you can
 later refer to for further checking. For instance if you are
 matching against the call \code{call(foo(bar))} with the pattern
-\code{call(.(arg))}, the \code{arg} object will contain \code{foo(bar)}.
+\code{call(.(arg))}, the \code{arg} object will contain \code{foo(bar)}. If
+several wildcards are given the same name, they override each
+other and the last one prevails.
 \item Eval-binding wildcards with \code{..(name)}. These wildcards work just
 like binding wildcards but evaluate the matched code before
 binding it to a symbol.
@@ -80,7 +85,18 @@ side and an expression of your choosing on the right-hand side. The
 expression is evaluated only if the pattern match. It can evaluate
 to a sentinel value (so you know which expression matched) or to
 some checking code. If no pattern matches, the return value of is
-\code{NULL}.
+\code{NULL}. For example the following returns \code{NULL}:\preformatted{expr <- quote(call(foo, bar))
+node_match(expr,
+  call(baz) ~ 1,
+  call(.) ~ 2
+)
+}
+
+While this returns \code{2}:\preformatted{node_match(expr,
+  call(foo, baz) ~ 1,
+  call(foo, .) ~ 2
+)
+}
 }
 
 \section{\code{lang_match()} versus \code{node_match()}}{
