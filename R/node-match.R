@@ -2,8 +2,25 @@
 #'
 #' @description
 #'
-#' `node_match()` is a handy way of checking whether a quoted call
-#' conforms to a pattern. The following rules apply to patterns:
+#' `node_match()` provides a flexible way of checking whether a quoted
+#' call conforms to a pattern. It compares the call to a set of
+#' `pattern ~ expression` pairs. If the LHS of a formula (e.g. a
+#' pattern) matches, the RHS of the formula is evaluated; otherwise
+#' the next formula is checked. Patterns support named and positional
+#' arguments, and can involve wildcards that match anything.
+#'
+#' If the wildcards are named, the part of the call that matched the
+#' wildcard will be assigned under that name in the environment where
+#' the RHS is evaluated. This technique makes it easy to provide
+#' specific responses to different inputs.
+#'
+#'
+#' @section Pattern rules:
+#'
+#' A pattern typically involves one call (e.g. `fn(1, 2)`), and
+#' possibly subcalls (as arguments of an outer call, e.g. `fn(other(),
+#' 2)`). The arguments of a call in the pattern are checked using the
+#' following rules:
 #'
 #' * Named arguments. They will match even if not in order. The
 #'   patterns `call(foo = 1, bar = 2)` and `call(bar = 2, foo = 1)`
@@ -62,7 +79,7 @@
 #' @section Named patterns:
 #'
 #' Argument names are parsed to R code. This makes it easy to supply
-#' eval-binding wildcards as names, e.g.
+#' binding wildcards as names, e.g.
 #'
 #' ```
 #' call(`.(arg_name)` = .)
