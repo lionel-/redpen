@@ -43,14 +43,14 @@ A pattern typically involves one call (e.g. \code{fn(1, 2)}), and
 possibly subcalls (as arguments of an outer call, e.g. \code{fn(other(), 2)}). The arguments of a call in the pattern are checked using the
 following rules:
 \itemize{
-\item Named arguments. They will match even if not in order. The
-patterns \code{call(foo = 1, bar = 2)} and \code{call(bar = 2, foo = 1)}
-are thus equivalent.
-\item Unnamed arguments. They will match only in order. The patterns
+\item \strong{Named arguments} will match even if not in order. The patterns
+\code{call(foo = 1, bar = 2)} and \code{call(bar = 2, foo = 1)} are thus
+equivalent.
+\item \strong{Unnamed arguments} will match only in order. The patterns
 \code{call(foo, bar)} and \code{call(bar, foo)} are thus not equivalent.
-\item NULL-named arguments. A NULL name signals an unnamed argument
-that should match even if not in order. The patterns \code{call(NULL = foo, NULL = bar)} and \code{call(NULL = bar, NULL = foo)} will both
-match the call \code{call(foo, bar)}.
+\item \strong{NULL-named arguments} signal an unnamed argument that should
+match even if not in order. The patterns \code{call(NULL = foo, NULL = bar)} and \code{call(NULL = bar, NULL = foo)} will both match the call
+\code{call(foo, bar)}.
 }
 
 In addition, patterns can contain wildcards that will match

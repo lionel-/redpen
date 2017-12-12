@@ -22,17 +22,17 @@
 #' 2)`). The arguments of a call in the pattern are checked using the
 #' following rules:
 #'
-#' * Named arguments. They will match even if not in order. The
-#'   patterns `call(foo = 1, bar = 2)` and `call(bar = 2, foo = 1)`
-#'   are thus equivalent.
+#' * __Named arguments__ will match even if not in order. The patterns
+#'   `call(foo = 1, bar = 2)` and `call(bar = 2, foo = 1)` are thus
+#'   equivalent.
 #'
-#' * Unnamed arguments. They will match only in order. The patterns
+#' * __Unnamed arguments__ will match only in order. The patterns
 #'   `call(foo, bar)` and `call(bar, foo)` are thus not equivalent.
 #'
-#' * NULL-named arguments. A NULL name signals an unnamed argument
-#'   that should match even if not in order. The patterns `call(NULL =
-#'   foo, NULL = bar)` and `call(NULL = bar, NULL = foo)` will both
-#'   match the call `call(foo, bar)`.
+#' * __NULL-named arguments__ signal an unnamed argument that should
+#'   match even if not in order. The patterns `call(NULL = foo, NULL =
+#'   bar)` and `call(NULL = bar, NULL = foo)` will both match the call
+#'   `call(foo, bar)`.
 #'
 #'
 #' In addition, patterns can contain wildcards that will match
