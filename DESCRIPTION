@@ -18,3 +18,4 @@ Suggests:
 Remotes:
     tidyverse/rlang#270
 RoxygenNote: 6.0.1
+Roxygen: list(markdown = TRUE)

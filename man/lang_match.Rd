@@ -13,7 +13,7 @@ node_match(.x, ..., .env = caller_env())
 \item{.x}{An expression to match.}
 
 \item{...}{Two sided formulas with patterns on the LHS and
-expressions on the RHS. If the LHS matches `.x`, the RHS is
+expressions on the RHS. If the LHS matches \code{.x}, the RHS is
 evaluated.}
 
 \item{.env}{An environment in which to evaluate the RHS. By default
@@ -21,108 +21,94 @@ the current environment.}
 }
 \value{
 The result of evaluating the RHS of a matching pattern.
-  `NULL` if no pattern has matched `.x`
+\code{NULL} if no pattern has matched \code{.x}
 }
 \description{
-`node_match()` is a handy way of checking whether a quoted call
+\code{node_match()} is a handy way of checking whether a quoted call
 conforms to a pattern. The following rules apply to patterns:
-
-* Named arguments. They will match even if not in order. The
-  patterns `call(foo = 1, bar = 2)` and `call(bar = 2, foo = 1)`
-  are thus equivalent.
-
-* Unnamed arguments. They will match only in order. The patterns
-  `call(foo, bar)` and `call(bar, foo)` are thus not equivalent.
-
-* NULL-named arguments. A NULL name signals an unnamed argument
-  that should match even if not in order. The patterns `call(NULL =
-  foo, NULL = bar)` and `call(NULL = bar, NULL = foo)` will both
-  match the call `call(foo, bar)`.
-
+\itemize{
+\item Named arguments. They will match even if not in order. The
+patterns \code{call(foo = 1, bar = 2)} and \code{call(bar = 2, foo = 1)}
+are thus equivalent.
+\item Unnamed arguments. They will match only in order. The patterns
+\code{call(foo, bar)} and \code{call(bar, foo)} are thus not equivalent.
+\item NULL-named arguments. A NULL name signals an unnamed argument
+that should match even if not in order. The patterns \code{call(NULL = foo, NULL = bar)} and \code{call(NULL = bar, NULL = foo)} will both
+match the call \code{call(foo, bar)}.
+}
 
 In addition, patterns can contain wildcards that will match
 anything:
+\itemize{
+\item The \code{.} wildcard will match any argument. It can appear on the
+LHS or the RHS of an argument. For instance \code{call(. = .)} will
+match any argument no matter its name.
+\item The \code{...} wildcard matches all remaining unmatched arguments.
+\code{call(...)} will match any calls to \code{call()}, including
+\code{call(foo)} or \code{call(foo, bar())}.
 
-* The `.` wildcard will match any argument. It can appear on the
-  LHS or the RHS of an argument. For instance `call(. = .)` will
-  match any argument no matter its name.
-
-* The `...` wildcard matches all remaining unmatched arguments.
-  `call(...)` will match any calls to `call()`, including
-  `call(foo)` or `call(foo, bar())`.
-
-  If you need to match an argument regardless of whether it has a
-  name, use the ellipsis as LHS: `call(... = .)`.
-
-* Binding wildcards with `.(name)`. Binding wildcards match
-  anything and create a reference to the matched code that you can
-  later refer to for further checking. For instance if you are
-  matching against the call `call(foo(bar))` with the pattern
-  `call(.(arg))`, the `arg` object will contain `foo(bar)`.
-
-* Eval-binding wildcards with `..(name)`. These wildcards work just
-  like binding wildcards but evaluate the matched code before
-  binding it to a symbol.
+If you need to match an argument regardless of whether it has a
+name, use the ellipsis as LHS: \code{call(... = .)}.
+\item Binding wildcards with \code{.(name)}. Binding wildcards match
+anything and create a reference to the matched code that you can
+later refer to for further checking. For instance if you are
+matching against the call \code{call(foo(bar))} with the pattern
+\code{call(.(arg))}, the \code{arg} object will contain \code{foo(bar)}.
+\item Eval-binding wildcards with \code{..(name)}. These wildcards work just
+like binding wildcards but evaluate the matched code before
+binding it to a symbol.
+}
 
 Patterns are supplied as formulas with the pattern on the left-hand
 side and an expression of your choosing on the right-hand side. The
 expression is evaluated only if the pattern match. It can evaluate
 to a sentinel value (so you know which expression matched) or to
 some checking code. If no pattern matches, the return value of is
-`NULL`.
+\code{NULL}.
 }
-\section{`lang_match()` versus `node_match()`}{
+\section{\code{lang_match()} versus \code{node_match()}}{
 
 
-`lang_match()` is just like `node_match()` except it standardises
-the `.x` call and pattern calls with [rlang::lang_standardise()].
+\code{lang_match()} is just like \code{node_match()} except it standardises
+the \code{.x} call and pattern calls with \code{\link[rlang:lang_standardise]{rlang::lang_standardise()}}.
 Standardisation ensures that arguments are matched by position
 rather than by name. Note that only function arguments positioned
-before `...` are normalised.
+before \code{...} are normalised.
 }
 
 \section{Named patterns}{
 
 
 Argument names are parsed to R code. This makes it easy to supply
-eval-binding wildcards as names, e.g.
-
-```
-call(`.(arg_name)` = .)
-```
+eval-binding wildcards as names, e.g.\preformatted{call(`.(arg_name)` = .)
+}
 
 On the other hand it makes it more difficult to supply
 non-syntactic names as you have to double quote. Either one of the
-following types of double-quotes will work:
-
-```
-call("`non-syntactic`" = .)
+following types of double-quotes will work:\preformatted{call("`non-syntactic`" = .)
 call(`\`non-syntactic\`` = .)
-```
+}
 }
 
 \section{Evaluated bindings}{
 
 
 It is often useful to check the value of an argument rather than
-its symbolic form. The eval-bind wildcard `..()` makes it easy
+its symbolic form. The eval-bind wildcard \code{..()} makes it easy
 because it evaluates the matched argument and binds it to a
-symbol. You can then refer to that symbol in the right-hand side:
-
-```
-call(. = ..(foo)) ~ is.numeric(foo)
-```
+symbol. You can then refer to that symbol in the right-hand side:\preformatted{call(. = ..(foo)) ~ is.numeric(foo)
+}
 
 However you need to be a bit careful when evaluating R code this way.
-
-- First, the code should be evaluated in the right environment. If
-  you supplied a quosure, then it is evaluated in the quosure
-  environment. Otherwise, it is evaluated in `.env` (the caller
-  environment by default).
-
-- Secondly, the evaluated code might produce side effects, such as
-  a warning or an error. You might want to wrap your pattern
-  matching code with e.g. `purrr::safely()`.
+\itemize{
+\item First, the code should be evaluated in the right environment. If
+you supplied a quosure, then it is evaluated in the quosure
+environment. Otherwise, it is evaluated in \code{.env} (the caller
+environment by default).
+\item Secondly, the evaluated code might produce side effects, such as
+a warning or an error. You might want to wrap your pattern
+matching code with e.g. \code{purrr::safely()}.
+}
 }
 
 \examples{
