@@ -1,8 +1,8 @@
 
-node_find <- function(.x, .p, ...) {
+node_find <- function(.x, .p, ..., .matcher = base::`!`) {
   rest <- .x
 
-  while (!is_null(rest) && !.p(rest, ...)) {
+  while (!is_null(rest) && .matcher(.p(rest, ...))) {
     rest <- node_cdr(rest)
   }
 
