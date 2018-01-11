@@ -89,10 +89,10 @@
 #' ```
 #'
 #'
-#' @section `lang_match()` versus `node_match()`:
+#' @section `call_match()` versus `node_match()`:
 #'
-#' `lang_match()` is just like `node_match()` except it standardises
-#' the `.x` call and pattern calls with [rlang::lang_standardise()].
+#' `call_match()` is just like `node_match()` except it standardises
+#' the `.x` call and pattern calls with [rlang::call_standardise()].
 #' Standardisation ensures that arguments are matched by position
 #' rather than by name. Note that only function arguments positioned
 #' before `...` are normalised.
@@ -212,12 +212,12 @@
 #'   mutate(., `.(nm)` = .^2) ~ check_sq_suffix(nm),
 #'   .                        ~ message("Try again")
 #' )
-lang_match <- function(.x, ..., .env = caller_env()) {
-  .x <- lang_standardise(.x, env = .env)
+call_match <- function(.x, ..., .env = caller_env()) {
+  .x <- call_standardise(.x, env = .env)
 
   dots <- dots_patterns(...)
   dots <- map(dots, function(x) {
-    x$lhs <- lang_standardise(x$lhs)
+    x$lhs <- call_standardise(x$lhs)
     x
   })
   dots <- patterns_recompose(dots)
@@ -250,7 +250,7 @@ pattern_recompose <- function(pattern, new_pattern) {
   new_pattern(exprs$lhs, exprs$rhs, env = env)
 }
 
-#' @rdname lang_match
+#' @rdname call_match
 #' @export
 node_match <- function(.x, ..., .env = caller_env()) {
   dots <- dots_match_patterns(...)
@@ -312,7 +312,7 @@ sxp_match <- function(input, pattern, env, bindings) {
       is_symbol_match(input, pattern)
     },
     language = {
-      if (!is_language(pattern)) {
+      if (!is_call(pattern)) {
         return(FALSE)
       }
       matched_first <- sxp_match(node_car(input), node_car(pattern), env, bindings)
@@ -418,7 +418,7 @@ is_node_match <- function(input_node, pattern_node, env, bindings) {
   input_tag <- node_tag(input_node)
   parsed_tag <- sym_parse(node_tag(pattern_node))
 
-  if (is_language(parsed_tag)) {
+  if (is_call(parsed_tag)) {
     if (!is_bind_operator(parsed_tag)) {
       abort("Unexpected argument name in pattern. Do you need to double-quote?")
     }
@@ -432,7 +432,7 @@ is_node_match <- function(input_node, pattern_node, env, bindings) {
   if (is_bind_operator(pattern)) {
     push_binding(pattern, input, env, bindings)
     TRUE
-  } else if (is_language(pattern)) {
+  } else if (is_call(pattern)) {
     sxp_match(input, pattern, env, bindings)
   } else {
     is_symbol_match(input, pattern)
@@ -467,10 +467,10 @@ is_ellipsis <- function(x) {
   identical(x, dots_sym)
 }
 is_bind_operator <- function(x) {
-  is_language(x, list(bind_sym, eval_sym))
+  is_call(x, list(bind_sym, eval_sym))
 }
 is_eval_operator <- function(x) {
-  is_language(x, eval_sym)
+  is_call(x, eval_sym)
 }
 
 

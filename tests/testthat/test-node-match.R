@@ -119,12 +119,12 @@ test_that("can use wildcard on name", {
   expect_true(node_match(x, lang(... = arg) ~ TRUE))
 })
 
-test_that("lang_match() standardises calls", {
+test_that("call_match() standardises calls", {
   x <- quote(test_that(desc = desc))
-  expect_true(lang_match(x, test_that(desc) ~ TRUE))
+  expect_true(call_match(x, test_that(desc) ~ TRUE))
 
   x <- quote(test_that(desc))
-  expect_true(lang_match(x, test_that(desc = desc) ~ TRUE))
+  expect_true(call_match(x, test_that(desc = desc) ~ TRUE))
 })
 
 test_that("wildcards work in subcalls", {
